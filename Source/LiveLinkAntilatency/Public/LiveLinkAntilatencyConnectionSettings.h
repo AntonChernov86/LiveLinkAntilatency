@@ -80,7 +80,7 @@ struct LIVELINKANTILATENCY_API FLiveLinkAntilatencyConnectionSettings {
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Connection Settings")
-	TArray<FUsbDeviceFilter> UsbDeviceFilters;
+	TArray<FUsbDeviceFilter> UsbDeviceFilters = { FUsbDeviceFilter{} };
 
 	UPROPERTY(EditAnywhere, Category = "Connection Settings")
 	TArray<FIpDeviceFilter> IpDeviceFilters;
