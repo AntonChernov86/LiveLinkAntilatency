@@ -28,6 +28,6 @@ class LIVELINKANTILATENCY_API ULiveLinkAntilatencySourceSettings : public ULiveL
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Alt Trackers Settings")
+	UPROPERTY(EditAnywhere, Category = "Alt Trackers Settings", meta = (DisplayName = "TrackerSettings (key is a tag of Alt's socket)"))
 	TMap<FString ,FAltTrackerSettings> TrackerSettings;
 };

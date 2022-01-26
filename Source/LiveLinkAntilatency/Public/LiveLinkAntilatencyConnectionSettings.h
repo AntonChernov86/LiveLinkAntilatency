@@ -79,6 +79,9 @@ struct LIVELINKANTILATENCY_API FLiveLinkAntilatencyConnectionSettings {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, Category = "Connection Settings", meta = (ClampMin = 1, ClampMax = 1000))
+	uint32 LocalUpdateRateInHz = 100;
+	
 	UPROPERTY(EditAnywhere, Category = "Connection Settings")
 	TArray<FUsbDeviceFilter> UsbDeviceFilters = { FUsbDeviceFilter{} };
 

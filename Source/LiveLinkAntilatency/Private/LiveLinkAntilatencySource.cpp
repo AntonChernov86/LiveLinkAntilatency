@@ -2,6 +2,7 @@
 
 #include "ExceptionCheck.h"
 #include "ILiveLinkClient.h"
+#include "LiveLinkLog.h"
 #include "ILiveLinkAntilatency.h"
 #include "Roles/LiveLinkTransformRole.h"
 #include "Roles/LiveLinkTransformTypes.h"
@@ -15,6 +16,7 @@ FLiveLinkAntilatencySource::FLiveLinkAntilatencySource(const FLiveLinkAntilatenc
 
 	_usbDeviceFilters = connectionSettings.UsbDeviceFilters;
 	_ipDeviceFilters = connectionSettings.IpDeviceFilters;
+	_localUpdateRate = connectionSettings.LocalUpdateRateInHz;
 
 	if (_usbDeviceFilters.Num() == 0 && _ipDeviceFilters.Num() == 0) {
 		UE_LOG(LogLiveLinkAntilatency, Error, TEXT("LiveLinkAntilatencySource: USB and IP device filters are both empty"));
@@ -68,9 +70,31 @@ void FLiveLinkAntilatencySource::OnSettingsChanged(ULiveLinkSourceSettings* sett
 			return;
 		}
 
-		_forceSearchForTrackers = true;
+		/*if (sourceSettings != nullptr) {
+			static auto nameExtrapolationTime = GET_MEMBER_NAME_CHECKED(FAltTrackerSettings, ExtrapolationTime);
+			static auto nameEnvironmentCode = GET_MEMBER_NAME_CHECKED(FAltTrackerSettings, EnvironmentCode);
+			static auto namePlacementCode = GET_MEMBER_NAME_CHECKED(FAltTrackerSettings, PlacementCode);
 
-		// TODO: remove active tracker if it settings has been changed
+			const auto propertyName = property->GetFName();
+			// const auto memberPropertyName = memberProperty->GetFName();
+
+			bool trackersListChanged = false;
+			bool trackerShouldBeRecreated = false;
+			bool trackerShouldBeUpdated = false;
+
+			if (propertyName == nameExtrapolationTime) {
+				UE_LOG(LogLiveLinkAntilatency, Log, TEXT("Extrapolation time changed"));
+				trackerShouldBeUpdated = true;
+			} else if (propertyName == nameEnvironmentCode || propertyName == namePlacementCode) {
+				UE_LOG(LogLiveLinkAntilatency, Log, TEXT("Placement or environment changed"));
+				trackerShouldBeRecreated = true;
+			} else {
+				UE_LOG(LogLiveLinkAntilatency, Log, TEXT("Trackers list changed"));
+				trackersListChanged = true;
+			}
+		}*/
+
+		_settingsChanged = true;
 	}
 }
 
@@ -130,8 +154,13 @@ bool FLiveLinkAntilatencySource::Init() {
 }
 
 uint32 FLiveLinkAntilatencySource::Run() {
+	const double sleepTime = 1.0 / static_cast<double>(_localUpdateRate);
 	
 	while (!_stopping) {
+		if (_settingsChanged) {
+			_runningTasks.Empty();
+		}
+		
 		uint32_t curUpdateId;
 		auto exception = _network.getUpdateId(curUpdateId);
 		ANTILATENCY_EXCEPTION_CHECK(exception, _network);
@@ -139,7 +168,7 @@ uint32 FLiveLinkAntilatencySource::Run() {
 			break;
 		}
 
-		if (_updateId != curUpdateId || _forceSearchForTrackers) {
+		if (_updateId != curUpdateId || _settingsChanged) {
 			_updateId = curUpdateId;
 
 			UE_LOG(LogLiveLinkAntilatency, Log, TEXT("Device network changed, update ID: %d"), _updateId);
@@ -194,7 +223,8 @@ uint32 FLiveLinkAntilatencySource::Run() {
 				auto settings = _savedSourceSettings->TrackerSettings.Find(tag);
 
 				if (settings == nullptr) {
-					UE_LOG(LogLiveLinkAntilatency, Warning, TEXT("Failed to find settings for Alt in socket with tag %s"), *tag);
+					FName nameMissingTag = *FString::Printf(TEXT("LiveLinkAntilatencySource_MissingTag%s"), *tag);
+					FLiveLinkLog::WarningOnce(nameMissingTag, FLiveLinkSubjectKey(), TEXT("Failed to find settings for Alt in socket with tag %s"), *tag);
 					continue;
 				}
 
@@ -221,7 +251,7 @@ uint32 FLiveLinkAntilatencySource::Run() {
 				_runningTasks.Add(tracker);
 			}
 
-			_forceSearchForTrackers = false;
+			_settingsChanged = false;
 		}
 
 		for (auto tracker : _runningTasks) {
@@ -241,7 +271,7 @@ uint32 FLiveLinkAntilatencySource::Run() {
 			Send(&frameData, FName(name));
 		}
 
-		FPlatformProcess::Sleep(0.016667f);
+		FPlatformProcess::Sleep(sleepTime);
 	}
 
 	_runningTasks.Empty();

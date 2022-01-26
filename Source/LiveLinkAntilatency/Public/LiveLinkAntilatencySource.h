@@ -80,7 +80,9 @@ private:
 	TArray<FUsbDeviceFilter> _usbDeviceFilters;
 	TArray<FIpDeviceFilter> _ipDeviceFilters;
 
-	FThreadSafeBool _forceSearchForTrackers = false;
+	uint32 _localUpdateRate;
+
+	FThreadSafeBool _settingsChanged = false;
 
 	Antilatency::DeviceNetwork::ILibrary _adnLibrary;
 	Antilatency::Alt::Tracking::ILibrary _altTrackingLibrary;
