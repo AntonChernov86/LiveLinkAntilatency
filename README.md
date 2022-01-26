@@ -1,9 +1,12 @@
 # Live Link Antilatency
 
-This is a plugin for the Unreal Engine allows to use Antilatency Alt trackers with UE LiveLink. 
+This is a plugin for the Unreal Engine allows to use Antilatency Alt trackers with UE LiveLink. Currently it works only with local devices.
 
 Antilatency SDK version: 3.5.0
+
 Unreal Engine version: 4.27
+
+OS: Windows x64
 
 ## Connection settings
 * LocalUpdateRateInHz - a trackers update rate per second.
