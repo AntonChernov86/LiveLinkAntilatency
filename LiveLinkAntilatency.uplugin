@@ -1,0 +1,27 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "3.5.0",
+	"FriendlyName": "LiveLinkAntilatency",
+	"Description": "",
+	"Category": "Virtual Production",
+	"CreatedBy": "Antilatency",
+	"CreatedByURL": "https://antilatency.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "LiveLinkAntilatency",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+            "WhitelistPlatforms": [
+                "Win64"
+            ]
+		}
+	]
+}
